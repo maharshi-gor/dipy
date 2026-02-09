@@ -2,7 +2,12 @@
 from pathlib import Path
 import sys
 
-from dipy.utils.logging import logger
+try:
+    from dipy.utils.logging import logger
+except ImportError:
+    import logging
+
+    logger = logging.getLogger("dipy")
 from dipy.utils.optpkg import optional_package
 from dipy.workflows.flow_runner import run_flow
 
@@ -45,6 +50,7 @@ cli_flows = {
     "dipy_fit_sfm": ("dipy.workflows.reconst", "ReconstSFMFlow"),
     "dipy_gibbs_ringing": ("dipy.workflows.denoise", "GibbsRingingFlow"),
     "dipy_horizon": ("dipy.workflows.viz", "HorizonFlow"),
+    "dipy_skyline": ("dipy.workflows.viz", "SkylineFlow"),
     "dipy_info": ("dipy.workflows.io", "IoInfoFlow"),
     "dipy_extract_b0": ("dipy.workflows.io", "ExtractB0Flow"),
     "dipy_extract_shell": ("dipy.workflows.io", "ExtractShellFlow"),
