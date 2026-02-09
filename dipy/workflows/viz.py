@@ -7,9 +7,29 @@ from dipy.io.image import load_nifti
 from dipy.io.peaks import load_pam
 from dipy.io.streamline import load_tractogram
 from dipy.io.surface import load_gifti, load_pial
-from dipy.io.utils import create_nifti_header, split_filename_extension
+from dipy.io.utils import create_nifti_header
+
+try:
+    from dipy.io.utils import split_filename_extension
+except ImportError:
+    import os
+
+    def split_filename_extension(filename):
+        """Fallback for dipy < 1.12."""
+        name = str(filename)
+        if name.lower().endswith(".nii.gz"):
+            return name[:-7], ".nii.gz"
+        if name.lower().endswith(".gii.gz"):
+            return name[:-7], ".gii.gz"
+        base, ext = os.path.splitext(name)
+        return base, ext
 from dipy.stats.analysis import assignment_map
-from dipy.utils.logging import logger
+try:
+    from dipy.utils.logging import logger
+except ImportError:
+    import logging
+
+    logger = logging.getLogger("dipy")
 from dipy.utils.optpkg import optional_package
 from dipy.viz import horizon
 from dipy.workflows.workflow import Workflow
@@ -18,9 +38,14 @@ fury, has_fury, setup_module = optional_package("fury", min_version="0.10.0")
 
 
 if has_fury:
-    from fury.colormap import line_colors
-    from fury.lib import numpy_support
-    from fury.utils import numpy_to_vtk_colors
+    try:
+        from fury.colormap import line_colors
+        from fury.lib import numpy_support
+        from fury.utils import numpy_to_vtk_colors
+    except ImportError:
+        line_colors = None
+        numpy_support = None
+        numpy_to_vtk_colors = None
 
 
 class HorizonFlow(Workflow):
@@ -137,20 +162,6 @@ class HorizonFlow(Workflow):
         interactive = not stealth
         world_coords = not native_coords
         bundle_colors = None
-
-        # mni_2009a = {
-        #    "affine": np.array(
-        #        [
-        #            [1.0, 0.0, 0.0, -98.0],
-        #            [0.0, 1.0, 0.0, -134.0],
-        #            [0.0, 0.0, 1.0, -72.0],
-        #            [0.0, 0.0, 0.0, 1.0],
-        #        ]
-        #    ),
-        #    "dims": (197, 233, 189),
-        #    "vox_size": (1.0, 1.0, 1.0),
-        #    "vox_space": "RAS",
-        # }
 
         mni_2009c = {
             "affine": np.array(
@@ -286,5 +297,115 @@ class HorizonFlow(Workflow):
             buan_colors=bundle_colors,
             roi_images=roi_images,
             roi_colors=roi_colors,
+            out_png=Path(out_dir) / out_stealth_png,
+        )
+
+
+class SkylineFlow(Workflow):
+    """GPU-accelerated SH billboard slicer (FURY v2 / pygfx / imgui).
+
+    Parallel to ``HorizonFlow`` but uses the pygfx rendering backend with
+    an ImGui GUI.  Accepts ``.nii`` / ``.nii.gz`` images and ``.pam5``
+    files and launches the :func:`~dipy.viz.horizon.skyline.skyline`
+    interactive viewer.
+    """
+
+    @classmethod
+    def get_short_name(cls):
+        return "skyline"
+
+    def run(
+        self,
+        input_files,
+        sh_order=8,
+        sh_scale=0.4,
+        lut_res=8,
+        use_hermite=True,
+        mapping_mode="cube",
+        basis_type="descoteaux07",
+        bg_color=(0.05, 0.05, 0.10),
+        stealth=False,
+        out_dir="",
+        out_stealth_png="skyline.png",
+    ):
+        """Interactive SH billboard slicer — Invert the Skyline!
+
+        Launch a GPU-accelerated multi-layer slicer combining SH glyphs,
+        volume planes, and CSD peak directions.
+
+        Parameters
+        ----------
+        input_files : variable string or Path
+            NIfTI images (``.nii``, ``.nii.gz``) and/or PAM files
+            (``.pam5``).
+        sh_order : int, optional
+            Maximum SH order (default 8).
+        sh_scale : float, optional
+            Initial per-glyph scale (default 0.4).
+        lut_res : int, optional
+            LUT resolution per billboard tile (default 8).
+        use_hermite : bool, optional
+            Use Hermite analytic normals (default True).
+        mapping_mode : str, optional
+            Billboard mapping mode (default ``"cube"``).
+        basis_type : str, optional
+            SH basis convention (default ``"descoteaux07"``).
+        bg_color : variable float, optional
+            Scene background colour, 3 floats in [0, 1].
+        stealth : bool, optional
+            Non-interactive mode — save screenshot and exit.
+        out_dir : str or Path, optional
+            Output directory.
+        out_stealth_png : str, optional
+            Filename for stealth-mode screenshot.
+        """
+        super().__init__(force=True)
+
+        from dipy.io.image import load_nifti
+        from dipy.io.peaks import load_pam
+        from dipy.viz.horizon.skyline import skyline
+
+        images = []
+        pams = []
+        interactive = not stealth
+
+        io_it = self.get_io_iterator()
+
+        for input_output in io_it:
+            fname = str(input_output[0])
+            logger.info(f"Loading file ... \n {fname}\n")
+
+            fl = fname.lower()
+
+            if fl.endswith(".nii.gz") or fl.endswith(".nii"):
+                data, affine = load_nifti(fname)
+                images.append((data, affine, fname))
+
+            elif fl.endswith(".pam5"):
+                pam = load_pam(fname)
+                pams.append((pam, fname))
+
+        if not images and not pams:
+            logger.warning("No supported files found. Provide .nii or .pam5.")
+            return
+
+        if len(bg_color) == 1:
+            bg_color *= 3
+        elif len(bg_color) != 3:
+            raise ValueError(
+                "bg_color needs 3 values, e.g. --bg_color 0.05 0.05 0.1"
+            )
+
+        skyline(
+            images=images,
+            pams=pams,
+            basis_type=basis_type,
+            sh_order=sh_order,
+            sh_scale=sh_scale,
+            lut_res=lut_res,
+            use_hermite=use_hermite,
+            mapping_mode=mapping_mode,
+            bg_color=tuple(bg_color),
+            interactive=interactive,
             out_png=Path(out_dir) / out_stealth_png,
         )
