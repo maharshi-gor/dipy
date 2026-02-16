@@ -1,5 +1,6 @@
+import os
 from pathlib import Path
-import sys
+import shutil
 from warnings import warn
 
 import numpy as np
@@ -148,8 +149,24 @@ class ResliceFlow(Workflow):
                 logger.info(
                     f"Voxel size {tuple(zooms)} already matches target "
                     f"{tuple(new_vox_size_to_use)}. Skipping reslicing."
+                    "return original data as a symlink."
                 )
-                new_data, new_affine = data, affine
+                source_file = Path(inputfile)
+                link_file = Path(outpfile)
+                try:
+                    link_file.symlink_to(source_file.resolve())
+                except OSError:
+                    # Symlinks may need elevated privileges on Windows; try a hard
+                    # link before falling back to copying large volumes.
+                    try:
+                        os.link(source_file, link_file)
+                        logger.info(f"Hard link created for {outpfile}")
+                    except OSError:
+                        shutil.copy(source_file, link_file)
+                        logger.warning(
+                            f"Link creation for {outpfile} failed, copied instead."
+                        )
+                continue
             else:
                 new_data, new_affine = reslice(
                     data,
@@ -161,8 +178,8 @@ class ResliceFlow(Workflow):
                     cval=cval,
                     num_processes=num_processes,
                 )
-            save_nifti(outpfile, new_data, new_affine)
-            logger.info(f"Resliced file save in {outpfile}")
+                save_nifti(outpfile, new_data, new_affine)
+                logger.info(f"Resliced file save in {outpfile}")
 
 
 class SlrWithQbxFlow(Workflow):
@@ -281,23 +298,30 @@ class SlrWithQbxFlow(Workflow):
 
             if not len(static_obj.streamlines):
                 logger.error(f"Static file {static_file} is empty")
-                sys.exit(1)
+                continue
             if not len(moving_obj.streamlines):
                 logger.error(f"Moving file {moving_file} is empty")
-                sys.exit(1)
+                continue
 
-            moved, affine, centroids_static, centroids_moving = slr_with_qbx(
-                static_obj.streamlines,
-                moving_obj.streamlines,
-                x0=x0,
-                rm_small_clusters=rm_small_clusters,
-                greater_than=greater_than,
-                less_than=less_than,
-                qbx_thr=qbx_thr,
-                progressive=progressive,
-                nb_pts=nb_pts,
-                num_threads=num_threads,
-            )
+            try:
+                moved, affine, centroids_static, centroids_moving = slr_with_qbx(
+                    static_obj.streamlines,
+                    moving_obj.streamlines,
+                    x0=x0,
+                    rm_small_clusters=rm_small_clusters,
+                    greater_than=greater_than,
+                    less_than=less_than,
+                    qbx_thr=qbx_thr,
+                    progressive=progressive,
+                    nb_pts=nb_pts,
+                    num_threads=num_threads,
+                )
+            except Exception as e:
+                logger.error(f"SLR with QBX failed: {e}")
+                logger.warning(
+                    "Skipping this pair of tractograms, " "continuing with next pair."
+                )
+                continue
 
             logger.info(f"Saving output file {out_moved_file}")
 

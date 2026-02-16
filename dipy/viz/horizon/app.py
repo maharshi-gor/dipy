@@ -35,7 +35,7 @@ from dipy.viz.horizon.visualizer import (
 )
 
 fury, has_fury, setup_module = optional_package(
-    "fury", min_version="0.10.0", max_version="0.12.0"
+    "fury", min_version="0.10.0", max_version="1.0.0"
 )
 
 if has_fury:
@@ -496,6 +496,10 @@ class Horizon:
 
             for t, sft in enumerate(self.tractograms):
                 streamlines = sft.streamlines
+
+                if len(streamlines) == 0:
+                    logger.warning(f"Tractogram {t} is empty and will be skipped.")
+                    continue
 
                 if "tracts" in self.random_colors:
                     colors = next(self.color_gen)

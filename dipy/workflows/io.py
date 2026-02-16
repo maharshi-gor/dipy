@@ -4,6 +4,7 @@ from inspect import getmembers, isfunction
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import warnings
 
@@ -795,6 +796,29 @@ class ExtractB0Flow(Workflow):
             norms = np.linalg.norm(bvecs, axis=1, keepdims=True)
             bvecs = bvecs / norms
             gtab = gradient_table(bvals, bvecs=bvecs, b0_threshold=b0_threshold)
+            if not gtab.b0s_mask.sum():
+                logger.warning(
+                    "No b0 volumes found, omitting b0 extraction and "
+                    "returning original DWI"
+                )
+                logger.info(f"b0 saved as {ob0}")
+                source_file = Path(dwi)
+                link_file = Path(ob0)
+                try:
+                    link_file.symlink_to(source_file.resolve())
+                except OSError:
+                    # On Windows creating symlinks requires extra privileges; use a
+                    # hard link first to avoid duplicating potentially large data.
+                    try:
+                        os.link(source_file, link_file)
+                        logger.info(f"Hard link created for {ob0}")
+                    except OSError:
+                        shutil.copy(source_file, link_file)
+                        logger.warning(
+                            f"Link creation for {ob0} failed, copied instead."
+                        )
+                continue
+
             b0s_result = extract_b0(
                 data,
                 gtab.b0s_mask,

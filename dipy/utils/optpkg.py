@@ -123,7 +123,7 @@ def optional_package(name, *, trip_msg=None, min_version=None, max_version=None)
                 f"{current_version} installed."
             )
             if current_version == "0.0.0":
-                trip_msg += "Your installation might be incomplete or corrupted."
+                trip_msg += " Your installation might be incomplete or corrupted."
 
     if trip_msg is None:
         trip_msg = (

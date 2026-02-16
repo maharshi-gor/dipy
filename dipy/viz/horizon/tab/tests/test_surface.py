@@ -9,7 +9,7 @@ from dipy.viz.horizon.tab.surface import SurfaceTab
 from dipy.viz.horizon.visualizer.surface import SurfaceVisualizer
 
 fury, has_fury, setup_module = optional_package(
-    "fury", min_version="0.10.0", max_version="0.12.0"
+    "fury", min_version="0.10.0", max_version="1.0.0"
 )
 skip_it = use_xvfb == "skip" or not has_fury
 

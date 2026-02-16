@@ -11,7 +11,7 @@ from dipy.utils.optpkg import optional_package
 from dipy.viz.horizon.util import show_ellipsis
 
 fury, has_fury, setup_module = optional_package(
-    "fury", min_version="0.10.0", max_version="0.12.0"
+    "fury", min_version="0.10.0", max_version="1.0.0"
 )
 
 if has_fury:

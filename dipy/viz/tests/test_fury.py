@@ -20,7 +20,7 @@ from dipy.tracking.tracker import eudx_tracking
 from dipy.utils.optpkg import optional_package
 
 fury, has_fury, setup_module = optional_package(
-    "fury", min_version="0.10.0", max_version="0.12.0"
+    "fury", min_version="0.10.0", max_version="1.0.0"
 )
 
 if has_fury:

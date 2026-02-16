@@ -25,8 +25,8 @@ from dipy.io.utils import (
 from dipy.testing.decorators import set_random_number_generator
 from dipy.utils.optpkg import optional_package
 
-fury, have_fury, setup_module = optional_package(
-    "fury", min_version="0.10.0", max_version="0.12.0"
+vtk, have_vtk, setup_module = optional_package(
+    "vtk", min_version="9.0.0", max_version="9.1.0"
 )
 
 
@@ -49,7 +49,7 @@ def teardown_module():
     FILEPATH_DIX = (None,)
 
 
-@pytest.mark.skipif(not have_fury, reason="Requires FURY")
+@pytest.mark.skipif(not have_vtk, reason="Requires VTK")
 def test_equivalence_lpsmm_sft_sfs():
     sft = load_tractogram(
         FILEPATH_DIX["gs_streamlines.vtk"],
