@@ -10,6 +10,7 @@ from dipy.viz.skyline.render.image import Image3D
 from dipy.viz.skyline.render.peak import Peak3D
 from dipy.viz.skyline.render.renderer import create_window
 from dipy.viz.skyline.render.roi import ROI3D
+from dipy.viz.skyline.render.sh_slicer import SHGlyph3D
 from dipy.viz.skyline.render.streamline import ClusterStreamline3D, Streamline3D
 from dipy.viz.skyline.render.surface import Surface
 
@@ -23,6 +24,7 @@ class Skyline:
         rois=None,
         surfaces=None,
         tractograms=None,
+        sh_coeffs=None,
         is_cluster=False,
         is_light_version=False,
         glass_brain=False,
@@ -83,6 +85,37 @@ class Skyline:
                 )
                 self._peak_visualizations.append(peak3d)
                 self.UI_window.add(fname, peak3d.renderer)
+
+                if hasattr(pam, "shm_coeff") and pam.shm_coeff is not None:
+                    sh_name = f"SH Glyphs ({fname})"
+                    sh3d = SHGlyph3D(
+                        sh_name,
+                        pam.shm_coeff,
+                        affine=pam.affine,
+                        render_callback=self.before_render,
+                    )
+                    self._sh_glyph_visualizations.append(sh3d)
+                    self.UI_window.add(sh_name, sh3d.renderer)
+        if sh_coeffs is not None:
+            for idx, item in enumerate(sh_coeffs):
+                if len(item) == 4:
+                    coeffs, affine, path, basis_type = item
+                else:
+                    coeffs, affine, path = item
+                    basis_type = "standard"
+                fname = Path(path).name if path is not None else f"SH Glyphs {idx}"
+                sh_name = f"SH Glyphs ({fname})"
+                sh3d = SHGlyph3D(
+                    sh_name,
+                    coeffs,
+                    affine=affine,
+                    render_callback=self.before_render,
+                    basis_type=basis_type,
+                    scale=1.3,
+                    l_max=8,
+                )
+                self._sh_glyph_visualizations.append(sh3d)
+                self.UI_window.add(sh_name, sh3d.renderer)
         if rois is not None:
             for idx, (roi, affine, path) in enumerate(rois):
                 color = next(self._color_gen)
@@ -221,6 +254,7 @@ def skyline(
     rois=None,
     surfaces=None,
     tractograms=None,
+    sh_coeffs=None,
     is_cluster=False,
     is_light_version=False,
     glass_brain=False,
@@ -267,6 +301,7 @@ def skyline(
         rois=rois,
         surfaces=surfaces,
         tractograms=tractograms,
+        sh_coeffs=sh_coeffs,
         is_cluster=is_cluster,
         is_light_version=is_light_version,
         glass_brain=glass_brain,

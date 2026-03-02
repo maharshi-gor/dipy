@@ -10,7 +10,6 @@ from dipy.viz.skyline.UI.elements import (
     thin_slider,
     two_disk_slider,
 )
-from dipy.viz.skyline.UI.theme import THEME
 from dipy.viz.skyline.render.renderer import Visualization
 
 
@@ -55,6 +54,8 @@ class Image3D(Visualization):
 
         self._create_slicer_actor()
         self.opacity = opacity
+
+        self._slicer.add_event_handler(self._pick_voxel, "pointer_down")
 
     def _pick_voxel(self, event):
         info = event.pick_info
@@ -232,23 +233,23 @@ class Image3D(Visualization):
 
         imgui.spacing()
 
-        voxel = str(self._picked_voxel) if self._picked_voxel is not None else ""
-        intensity = (
-            str(self._picked_intensity) if self._picked_intensity is not None else ""
-        )
-        value_color = THEME["primary"]
-        label_color = THEME["text"]
-        intesity_pos_x = imgui.get_content_region_avail().x * 0.5
-        imgui.push_id("voxel_info")
-        imgui.text_colored(label_color, "Voxel ")
-        imgui.same_line()
-        imgui.text_colored(value_color, voxel)
-        imgui.same_line()
-        imgui.set_cursor_pos_x(intesity_pos_x)
-        imgui.text_colored(label_color, "Intensity ")
-        imgui.same_line()
-        imgui.text_colored(value_color, intensity)
-        imgui.pop_id()
+        # voxel = str(self._picked_voxel) if self._picked_voxel is not None else ""
+        # intensity = (
+        #     str(self._picked_intensity) if self._picked_intensity is not None else ""
+        # )
+        # value_color = THEME["primary"]
+        # label_color = THEME["text"]
+        # intesity_pos_x = imgui.get_content_region_avail().x * 0.5
+        # imgui.push_id("voxel_info")
+        # imgui.text_colored(label_color, "Voxel ")
+        # imgui.same_line()
+        # imgui.text_colored(value_color, voxel)
+        # imgui.same_line()
+        # imgui.set_cursor_pos_x(intesity_pos_x)
+        # imgui.text_colored(label_color, "Intensity ")
+        # imgui.same_line()
+        # imgui.text_colored(value_color, intensity)
+        # imgui.pop_id()
 
         imgui.spacing()
         imgui.spacing()

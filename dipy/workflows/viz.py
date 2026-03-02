@@ -25,6 +25,62 @@ if has_fury:
     from fury.utils import numpy_to_vtk_colors
 
 
+def _scalar_to_text(value, default):
+    """Convert scalar-like npz value to text."""
+    if value is None:
+        return default
+
+    if isinstance(value, np.ndarray):
+        if value.size == 0:
+            return default
+        if value.size == 1:
+            value = value.reshape(()).item()
+        else:
+            return default
+
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+
+    text = str(value)
+    return text if text else default
+
+
+def _load_skyline_sh_coeffs(fname):
+    """Read SH coeffs and metadata from a ``.npz`` file for Skyline."""
+    with np.load(fname, allow_pickle=False) as npz:
+        coeff_key = None
+        for key in ("odf_sh_coeff", "sh_coeffs", "shm_coeff"):
+            if key in npz:
+                coeff_key = key
+                break
+
+        if coeff_key is None:
+            raise ValueError(
+                f"{fname} must contain one of: odf_sh_coeff, sh_coeffs, shm_coeff."
+            )
+
+        coeffs = np.asarray(npz[coeff_key], dtype=np.float32)
+        if coeffs.ndim != 4:
+            raise ValueError(
+                f"{fname}:{coeff_key} must be 4D (X, Y, Z, C), got {coeffs.shape}."
+            )
+
+        if "affine" in npz:
+            affine = np.asarray(npz["affine"], dtype=np.float32)
+            if affine.shape != (4, 4):
+                raise ValueError(
+                    f"{fname}:affine must have shape (4, 4), got {affine.shape}."
+                )
+        else:
+            affine = np.eye(4, dtype=np.float32)
+            logger.warning(f"{fname} has no affine. Falling back to identity.")
+
+        basis_value = npz["basis_type"] if "basis_type" in npz else None
+
+    basis_type = _scalar_to_text(basis_value, "descoteaux07")
+    return coeffs, affine, basis_type
+
+
 class HorizonFlow(Workflow):
     @classmethod
     def get_short_name(cls):
@@ -293,6 +349,18 @@ class HorizonFlow(Workflow):
 
 
 class SkylineFlow(Workflow):
+<<<<<<< Updated upstream
+=======
+    """GPU-accelerated Skyline viewer (pygfx / imgui).
+
+    Parallel to ``HorizonFlow`` but uses the pygfx rendering backend with
+    an ImGui GUI. Accepts ``.nii`` / ``.nii.gz`` images, ``.pam5`` files,
+    SH coefficients ``.npz`` files, surfaces, ROIs, and tractograms and
+    launches the
+    :func:`~dipy.viz.skyline.app.skyline` interactive viewer.
+    """
+
+>>>>>>> Stashed changes
     @classmethod
     def get_short_name(cls):
         return "skyline"
@@ -302,6 +370,7 @@ class SkylineFlow(Workflow):
         input_files,
         *,
         rois=None,
+        sh_coeffs=None,
         cluster=False,
         light_version=False,
         glass_brain=False,
@@ -316,6 +385,8 @@ class SkylineFlow(Workflow):
             the Skyline viewer.
         rois : variable str, optional
             Tuple of path for each ROI to be added to the Skyline viewer.
+        sh_coeffs : variable str, optional
+            Tuple of path for each ``.npz`` SH coefficients file to be loaded.
         cluster : bool, optional
             Whether to cluster the tractograms.
         light_version : bool, optional
@@ -334,9 +405,17 @@ class SkylineFlow(Workflow):
 
         if rois is None:
             rois = []
+        elif isinstance(rois, (str, Path)):
+            rois = [rois]
+
+        if sh_coeffs is None:
+            sh_coeffs = []
+        elif isinstance(sh_coeffs, (str, Path)):
+            sh_coeffs = [sh_coeffs]
 
         skyline_images = []
         skyline_peaks = []
+        skyline_sh_coeffs = []
         skyline_rois = []
         skyline_surfaces = []
         skyline_tractograms = []
@@ -404,9 +483,22 @@ class SkylineFlow(Workflow):
                     f"File extension '{ext}' is not supported for ROIs in Skyline."
                 )
 
+        for fname in sh_coeffs:
+            _, ext = split_filename_extension(fname)
+            ext = ext.lower()
+            if ext != ".npz":
+                logger.error(
+                    f"File extension '{ext}' is not supported for SH coefficients in "
+                    "Skyline."
+                )
+
+            coeffs, affine, basis_type = _load_skyline_sh_coeffs(fname)
+            skyline_sh_coeffs.append((coeffs, affine, fname, basis_type))
+
         skyline(
             images=skyline_images,
             peaks=skyline_peaks,
+            sh_coeffs=skyline_sh_coeffs,
             rois=skyline_rois,
             surfaces=skyline_surfaces,
             tractograms=skyline_tractograms,
