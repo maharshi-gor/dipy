@@ -35,6 +35,7 @@ from dipy.tracking.streamlinespeed import length
 from dipy.utils.logging import logger
 from dipy.utils.optpkg import optional_package
 from dipy.utils.tractogram import concatenate_tractogram
+from dipy.workflows.base import format_key_value_table
 from dipy.workflows.utils import handle_vol_idx
 from dipy.workflows.workflow import Workflow
 
@@ -351,6 +352,58 @@ def _print_tractography_information(
     )
 
 
+def format_data_names_table(data):
+    """Format dataset names and fetcher summaries as an ASCII table.
+
+    Parameters
+    ----------
+    data : dict
+        Available dataset names mapped to fetcher functions.
+
+    Returns
+    -------
+    str
+        Dataset names and fetcher summaries formatted as an ASCII table.
+    """
+
+    def _doc_summary(fetcher_function):
+        """Extract a short description from a fetcher docstring.
+
+        Parameters
+        ----------
+        fetcher_function : callable
+            Dataset fetcher function.
+
+        Returns
+        -------
+        str
+            The first non-empty line from ``fetcher_function.__doc__``.
+            Returns ``"-"`` when no description is available.
+        """
+
+        doc = getattr(fetcher_function, "__doc__", None)
+        if not doc:
+            return "-"
+
+        for line in doc.splitlines():
+            stripped_line = line.strip()
+            if stripped_line:
+                return stripped_line.replace("|", "/")
+
+        return "-"
+
+    descriptions_by_name = {
+        dataset_name: _doc_summary(fetcher_function)
+        for dataset_name, fetcher_function in data.items()
+    }
+
+    return format_key_value_table(
+        descriptions_by_name,
+        key_header="Dataset",
+        value_header="Description",
+    )
+
+
 class IoInfoFlow(Workflow):
     @classmethod
     def get_short_name(cls):
@@ -626,7 +679,7 @@ class FetchFlow(Workflow):
         elif "list" in data_names:
             logger.info(
                 "Please, select between the following data names: \n"
-                f"{', '.join(available_data.keys())}"
+                f"{format_data_names_table(available_data)}"
             )
 
         else:
