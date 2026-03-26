@@ -27,9 +27,17 @@ _GROUP_LABELS = {
 
 
 class UIManager:
-    """Lightweight registry for named UI window instances (extension hook)."""
+    """Represent ``UIManager`` in Skyline.
+
+    Parameters
+    ----------
+    None
+    """
 
     def __init__(self):
+        """Represent ``UIManager`` in Skyline.
+        None
+        """
         self.windows = {}
 
     def add_window(self, window_name, window_instance):
@@ -46,28 +54,28 @@ class UIManager:
 
 
 class UIWindow:
-    """ImGui dock for Skyline: branding, grouped layers, loaders, and file pickers.
+    """Represent ``UIWindow`` in Skyline.
 
     Parameters
     ----------
-    title : str
-        ImGui window title used as the internal id.
-    default_open : bool, optional
-        Ignored for collapsed state; kept for API compatibility.
-    flags : int, optional
-        Extra ``imgui.WindowFlags`` OR-ed into the computed flags.
-    pos : tuple, optional
-        Window position in screen pixels.
-    size : tuple, optional
-        Window width and height in pixels.
-    logo_tex_ref : object, optional
-        ImGui texture reference for the header logo.
-    render_callback : callable, optional
-        Invoked after sections are removed so the host can refresh the scene.
-    file_dialog_callback : callable, optional
-        Receives ``filenames`` / ``rois`` / ``shm_coeffs`` kwargs from load dialogs.
-    bg_color_callback : callable, optional
-        Called with an ``(r, g, b)`` tuple when the user edits the background.
+    title : object
+        Input parameter.
+    default_open : object
+        Input parameter.
+    flags : object
+        Input parameter.
+    pos : object
+        Input parameter.
+    size : object
+        Input parameter.
+    logo_tex_ref : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
+    file_dialog_callback : object
+        Input parameter.
+    bg_color_callback : object
+        Input parameter.
     """
 
     def __init__(
@@ -83,6 +91,29 @@ class UIWindow:
         file_dialog_callback=None,
         bg_color_callback=None,
     ):
+        """Represent ``UIWindow`` in Skyline.
+
+        Parameters
+        ----------
+        title : object
+            Input parameter.
+        default_open : object
+            Input parameter.
+        flags : object
+            Input parameter.
+        pos : object
+            Input parameter.
+        size : object
+            Input parameter.
+        logo_tex_ref : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        file_dialog_callback : object
+            Input parameter.
+        bg_color_callback : object
+            Input parameter.
+        """
         self.title = title
         self.is_open = default_open
         self.flags = flags

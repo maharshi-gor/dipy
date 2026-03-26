@@ -32,8 +32,7 @@ if has_fury_v2:
     )
     from fury.utils import create_sh_basis_matrix, get_lmax, get_n_coeffs
     import wgpu
-else:
-    actor = fury.actor
+
 
 _GPU_DEVICE_LIMITS_CACHE: dict = {}
 _GPU_HERMITE_COMPUTE_CACHE: dict = {}
@@ -134,11 +133,24 @@ def _calculate_lut_chunking(
 
 
 class SlicedSphGlyphMaterial(SphGlyphMaterial):
-    """SphGlyphMaterial with per-axis slice selection uniforms.
+    """Represent ``SlicedSphGlyphMaterial`` in Skyline.
 
-    Uniforms ``active_slice_x/y/z`` select which slice index is visible
-    on each axis, and ``vis_x/y/z`` toggle axis visibility.  A glyph is
-    rendered when *any* visible axis matches its stored voxel coordinate.
+    Parameters
+    ----------
+    active_slice_x : object
+        Input parameter.
+    active_slice_y : object
+        Input parameter.
+    active_slice_z : object
+        Input parameter.
+    vis_x : object
+        Input parameter.
+    vis_y : object
+        Input parameter.
+    vis_z : object
+        Input parameter.
+    **kwargs : object
+        Input parameter.
     """
 
     uniform_type = dict(
@@ -161,6 +173,25 @@ class SlicedSphGlyphMaterial(SphGlyphMaterial):
         vis_z=1,
         **kwargs,
     ):
+        """Represent ``SlicedSphGlyphMaterial`` in Skyline.
+
+        Parameters
+        ----------
+        active_slice_x : object
+            Input parameter.
+        active_slice_y : object
+            Input parameter.
+        active_slice_z : object
+            Input parameter.
+        vis_x : object
+            Input parameter.
+        vis_y : object
+            Input parameter.
+        vis_z : object
+            Input parameter.
+        **kwargs : object
+            Input parameter.
+        """
         super().__init__(**kwargs)
         self.active_slice_x = active_slice_x
         self.active_slice_y = active_slice_y
@@ -170,58 +201,169 @@ class SlicedSphGlyphMaterial(SphGlyphMaterial):
         self.vis_z = vis_z
 
     def _set_i4(self, name, value):
+        """Handle  set i4 for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+        value : object
+            Input parameter.
+        """
         self.uniform_buffer.data[name] = int(value)
         self.uniform_buffer.update_full()
 
     def _get_i4(self, name):
+        """Handle  get i4 for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return int(self.uniform_buffer.data[name])
 
     @property
     def active_slice_x(self):
+        """Handle active slice x for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("active_slice_x")
 
     @active_slice_x.setter
     def active_slice_x(self, v):
+        """Handle active slice x for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("active_slice_x", v)
 
     @property
     def active_slice_y(self):
+        """Handle active slice y for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("active_slice_y")
 
     @active_slice_y.setter
     def active_slice_y(self, v):
+        """Handle active slice y for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("active_slice_y", v)
 
     @property
     def active_slice_z(self):
+        """Handle active slice z for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("active_slice_z")
 
     @active_slice_z.setter
     def active_slice_z(self, v):
+        """Handle active slice z for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("active_slice_z", v)
 
     @property
     def vis_x(self):
+        """Handle vis x for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("vis_x")
 
     @vis_x.setter
     def vis_x(self, v):
+        """Handle vis x for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("vis_x", v)
 
     @property
     def vis_y(self):
+        """Handle vis y for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("vis_y")
 
     @vis_y.setter
     def vis_y(self, v):
+        """Handle vis y for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("vis_y", v)
 
     @property
     def vis_z(self):
+        """Handle vis z for ``SlicedSphGlyphMaterial``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._get_i4("vis_z")
 
     @vis_z.setter
     def vis_z(self, v):
+        """Handle vis z for ``SlicedSphGlyphMaterial``.
+
+        Parameters
+        ----------
+        v : object
+            Input parameter.
+        """
         self._set_i4("vis_z", v)
 
 
@@ -236,10 +378,25 @@ class SphGlyphBillboard(Billboard):
 
     @property
     def l_max(self):
+        """Handle l max for ``SphGlyphBillboard``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return getattr(self, "_l_max", -1)
 
     @l_max.setter
     def l_max(self, value):
+        """Handle l max for ``SphGlyphBillboard``.
+
+        Parameters
+        ----------
+        value : object
+            Input parameter.
+        """
         if not isinstance(value, int) or value < 0:
             raise ValueError("The attribute 'l_max' must be a non-negative integer.")
         max_supported = get_lmax(
@@ -257,9 +414,22 @@ class SphGlyphBillboard(Billboard):
 
 
 class BillboardSphGlyphShader(MeshShader):
-    """WGSL template bridge that injects slicing, LUT, and SH uniforms."""
+    """Represent ``BillboardSphGlyphShader`` in Skyline.
+
+    Parameters
+    ----------
+    wobject : object
+        Input parameter.
+    """
 
     def __init__(self, wobject):
+        """Represent ``BillboardSphGlyphShader`` in Skyline.
+
+        Parameters
+        ----------
+        wobject : object
+            Input parameter.
+        """
         super().__init__(wobject)
         self._wobject = wobject
         self["billboard_count"] = getattr(wobject, "billboard_count", 1)
@@ -317,6 +487,20 @@ class BillboardSphGlyphShader(MeshShader):
         self["use_slicing"] = "true" if use_slicing else "false"
 
     def get_render_info(self, wobject, shared):
+        """Handle get render info for ``BillboardSphGlyphShader``.
+
+        Parameters
+        ----------
+        wobject : object
+            Input parameter.
+        shared : object
+            Input parameter.
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         render_info = super().get_render_info(wobject, shared)
         if not render_info or render_info.get("indices") is None:
             geometry = wobject.geometry
@@ -331,6 +515,22 @@ class BillboardSphGlyphShader(MeshShader):
         return render_info
 
     def get_bindings(self, wobject, shared, scene=None):
+        """Handle get bindings for ``BillboardSphGlyphShader``.
+
+        Parameters
+        ----------
+        wobject : object
+            Input parameter.
+        shared : object
+            Input parameter.
+        scene : object
+            Input parameter.
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         try:
             bindings = super().get_bindings(wobject, shared, scene)
         except TypeError:
@@ -444,6 +644,14 @@ class BillboardSphGlyphShader(MeshShader):
         return bindings
 
     def get_code(self):
+        """Handle get code for ``BillboardSphGlyphShader``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return load_dipy_wgsl("sh_billboard.wgsl")
 
 

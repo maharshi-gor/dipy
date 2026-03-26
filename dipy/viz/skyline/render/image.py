@@ -31,8 +31,6 @@ if has_fury_v2:
         volume_slicer,
     )
     from fury.lib import gfx
-else:
-    actor = fury.actor
 
 imgui_bundle, has_imgui, _ = optional_package("imgui_bundle", min_version="1.92.600")
 if has_imgui:
@@ -115,7 +113,31 @@ def create_image_visualization(
 
 
 class Image3D(Visualization):
-    """3D/4D scalar or RGB volume with orthographic slice planes and sync hooks."""
+    """Represent ``Image3D`` in Skyline.
+
+    Parameters
+    ----------
+    name : object
+        Input parameter.
+    volume : object
+        Input parameter.
+    affine : object
+        Input parameter.
+    interpolation : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
+    opacity : object
+        Input parameter.
+    rgb : object
+        Input parameter.
+    value_percentiles : object
+        Input parameter.
+    colormap : object
+        Input parameter.
+    sync_callabck : object
+        Input parameter.
+    """
 
     def __init__(
         self,
@@ -131,6 +153,31 @@ class Image3D(Visualization):
         colormap="Gray",
         sync_callabck=None,
     ):
+        """Represent ``Image3D`` in Skyline.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+        volume : object
+            Input parameter.
+        affine : object
+            Input parameter.
+        interpolation : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        opacity : object
+            Input parameter.
+        rgb : object
+            Input parameter.
+        value_percentiles : object
+            Input parameter.
+        colormap : object
+            Input parameter.
+        sync_callabck : object
+            Input parameter.
+        """
         self.dwi = volume
         self.affine = affine
 
@@ -163,12 +210,22 @@ class Image3D(Visualization):
         self.opacity = opacity
 
     def _pick_voxel(self, event):
+        """Handle  pick voxel for ``Image3D``.
+
+        Parameters
+        ----------
+        event : object
+            Input parameter.
+        """
         info = event.pick_info
         voxel = info["index"]
         self._picked_voxel = voxel
         self._picked_intensity = self.active_volume[voxel]
 
     def _create_slicer_actor(self):
+        """Handle  create slicer actor for ``Image3D``.
+        None
+        """
         volume = self.active_volume
         self.value_range = self._value_range_from_percentile(volume)
         self._slicer = volume_slicer(
@@ -188,11 +245,30 @@ class Image3D(Visualization):
         self.render()
 
     def _value_range_from_percentile(self, volume):
+        """Handle  value range from percentile for ``Image3D``.
+
+        Parameters
+        ----------
+        volume : object
+            Input parameter.
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         p_low, p_high = self._value_percentiles
         vmin, vmax = np.percentile(volume, (p_low, p_high))
         return vmin, vmax
 
     def _apply_colormap(self, colormap):
+        """Handle  apply colormap for ``Image3D``.
+
+        Parameters
+        ----------
+        colormap : object
+            Input parameter.
+        """
         self.colormap = colormap
         if self.colormap.lower() == "gray":
             for actor in self._slicer.children:
@@ -203,13 +279,37 @@ class Image3D(Visualization):
 
     @property
     def actor(self):
+        """Handle actor for ``Image3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._slicer
 
     @property
     def active_volume(self):
+        """Handle active volume for ``Image3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self.dwi[..., self._volume_idx] if self._has_directions else self.dwi
 
     def _populate_info(self):
+        """Handle  populate info for ``Image3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         np.set_printoptions(suppress=True, precision=2)
         info = f"Dimensions: {self.dwi.shape[:3]}"
         if self._has_directions:
@@ -229,6 +329,13 @@ class Image3D(Visualization):
         return info
 
     def update_state(self, new_state):
+        """Handle update state for ``Image3D``.
+
+        Parameters
+        ----------
+        new_state : object
+            Input parameter.
+        """
         if self._synchronize:
             self.state = new_state[:3]
             self.apply_scene_op(show_slices, self._slicer, self.state)
@@ -243,6 +350,13 @@ class Image3D(Visualization):
                     self.apply_scene_op(self._create_slicer_actor)
 
     def _set_opacity(self, opacity):
+        """Handle  set opacity for ``Image3D``.
+
+        Parameters
+        ----------
+        opacity : object
+            Input parameter.
+        """
         set_group_opacity(self._slicer, opacity / 100.0)
         if opacity < 100:
             for actor in self._slicer.children:
@@ -250,18 +364,49 @@ class Image3D(Visualization):
                 actor.material.alpha_mode = "blend"
 
     def _set_slice_state(self, visibility, state):
+        """Handle  set slice state for ``Image3D``.
+
+        Parameters
+        ----------
+        visibility : object
+            Input parameter.
+        state : object
+            Input parameter.
+        """
         set_group_visibility(self._slicer, visibility)
         show_slices(self._slicer, state)
 
     def _set_clim(self, value_range):
+        """Handle  set clim for ``Image3D``.
+
+        Parameters
+        ----------
+        value_range : object
+            Input parameter.
+        """
         for actor in self._slicer.children:
             actor.material.clim = value_range
 
     def _set_interpolation(self, interpolation):
+        """Handle  set interpolation for ``Image3D``.
+
+        Parameters
+        ----------
+        interpolation : object
+            Input parameter.
+        """
         for actor in self._slicer.children:
             actor.material.interpolation = interpolation
 
     def render_widgets(self):
+        """Handle render widgets for ``Image3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         changed, new = toggle_button(self._synchronize, label="Synchronize Slices")
         if changed:
             self._synchronize = new

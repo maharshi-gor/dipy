@@ -23,8 +23,6 @@ fury, has_fury_v2, _ = optional_package(
 if has_fury_v2:
     from fury.actor import peaks_slicer
     from fury.transform import apply_transformation
-else:
-    actor = fury.actor
 
 imgui_bundle, has_imgui, _ = optional_package("imgui_bundle", min_version="1.92.600")
 if has_imgui:
@@ -88,7 +86,25 @@ def create_peak_visualization(
 
 
 class Peak3D(Visualization):
-    """Peak vector field with adjustable scale, opacity, and slice locks."""
+    """Represent ``Peak3D`` in Skyline.
+
+    Parameters
+    ----------
+    name : object
+        Input parameter.
+    peaks : object
+        Input parameter.
+    affine : object
+        Input parameter.
+    peak_values : object
+        Input parameter.
+    opacity : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
+    sync_callabck : object
+        Input parameter.
+    """
 
     def __init__(
         self,
@@ -101,6 +117,25 @@ class Peak3D(Visualization):
         render_callback=None,
         sync_callabck=None,
     ):
+        """Represent ``Peak3D`` in Skyline.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+        peaks : object
+            Input parameter.
+        affine : object
+            Input parameter.
+        peak_values : object
+            Input parameter.
+        opacity : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        sync_callabck : object
+            Input parameter.
+        """
         self.peaks = peaks
         self.affine = affine
         self.peak_values = peak_values
@@ -113,6 +148,9 @@ class Peak3D(Visualization):
         super().__init__(name, render_callback)
 
     def _create_peak_actor(self):
+        """Handle  create peak actor for ``Peak3D``.
+        None
+        """
         self._slicer = peaks_slicer(
             self.peaks,
             affine=self.affine,
@@ -133,6 +171,14 @@ class Peak3D(Visualization):
         self._apply_cross_section_from_state()
 
     def _populate_info(self):
+        """Handle  populate info for ``Peak3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         info = f"Peaks shape: {self.peaks.shape}\n"
         info += f"Peaks dtype: {self.peaks.dtype}\n"
         if self.affine is not None:
@@ -144,9 +190,25 @@ class Peak3D(Visualization):
 
     @property
     def actor(self):
+        """Handle actor for ``Peak3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._slicer
 
     def _infer_cross_section_space(self):
+        """Handle  infer cross section space for ``Peak3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         if self.affine is None:
             return "voxel"
 
@@ -161,6 +223,18 @@ class Peak3D(Visualization):
         return "world" if world_dist <= voxel_dist else "voxel"
 
     def _voxel_from_world_state(self, world_state):
+        """Handle  voxel from world state for ``Peak3D``.
+
+        Parameters
+        ----------
+        world_state : object
+            Input parameter.
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         voxel_state = apply_transformation(
             np.array([world_state], dtype=np.float32), np.linalg.inv(self.affine)
         )[0]
@@ -169,6 +243,9 @@ class Peak3D(Visualization):
         return np.clip(voxel_state, 0, max_idx)
 
     def _apply_cross_section_from_state(self):
+        """Handle  apply cross section from state for ``Peak3D``.
+        None
+        """
         if self.affine is None:
             voxel_state = np.round(self.state).astype(np.int16)
             self._cross_section_state = voxel_state.astype(np.float32)
@@ -187,17 +264,46 @@ class Peak3D(Visualization):
             self._slicer.cross_section = voxel_state
 
     def update_state(self, new_state):
+        """Handle update state for ``Peak3D``.
+
+        Parameters
+        ----------
+        new_state : object
+            Input parameter.
+        """
         if self._synchronize:
             self.state = np.asarray(new_state[:3], dtype=np.float32)
             self.apply_scene_op(self._apply_cross_section_from_state)
 
     def _set_opacity(self, opacity):
+        """Handle  set opacity for ``Peak3D``.
+
+        Parameters
+        ----------
+        opacity : object
+            Input parameter.
+        """
         self._slicer.material.opacity = opacity
 
     def _set_slice_visibility(self, visibility):
+        """Handle  set slice visibility for ``Peak3D``.
+
+        Parameters
+        ----------
+        visibility : object
+            Input parameter.
+        """
         self._slicer.material.visibility = visibility
 
     def render_widgets(self):
+        """Handle render widgets for ``Peak3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         changed, new = toggle_button(self._synchronize, label="Synchronize Slices")
         if changed:
             self._synchronize = new

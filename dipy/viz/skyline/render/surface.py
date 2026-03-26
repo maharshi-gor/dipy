@@ -17,8 +17,6 @@ fury, has_fury_v2, _ = optional_package(
 )
 if has_fury_v2:
     from fury.actor import surface
-else:
-    actor = fury.actor
 imgui_bundle, has_imgui, _ = optional_package("imgui_bundle", min_version="1.92.600")
 if has_imgui:
     imgui = imgui_bundle.imgui
@@ -83,7 +81,29 @@ def create_surface_visualization(
 
 
 class Surface(Visualization):
-    """Triangulated cortical or anatomical surface."""
+    """Represent ``Surface`` in Skyline.
+
+    Parameters
+    ----------
+    name : object
+        Input parameter.
+    vertices : object
+        Input parameter.
+    faces : object
+        Input parameter.
+    affine : object
+        Input parameter.
+    color : object
+        Input parameter.
+    opacity : object
+        Input parameter.
+    texture : object
+        Input parameter.
+    material : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
+    """
 
     def __init__(
         self,
@@ -98,6 +118,29 @@ class Surface(Visualization):
         material="phong",
         render_callback=None,
     ):
+        """Represent ``Surface`` in Skyline.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+        vertices : object
+            Input parameter.
+        faces : object
+            Input parameter.
+        affine : object
+            Input parameter.
+        color : object
+            Input parameter.
+        opacity : object
+            Input parameter.
+        texture : object
+            Input parameter.
+        material : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        """
         self.vertices = vertices
         self.faces = faces
         self.affine = affine
@@ -109,6 +152,9 @@ class Surface(Visualization):
         super().__init__(name, render_callback)
 
     def _create_surface_actor(self):
+        """Handle  create surface actor for ``Surface``.
+        None
+        """
         self._surface_actor = surface(
             self.vertices,
             self.faces,
@@ -121,18 +167,44 @@ class Surface(Visualization):
             self._surface_actor.material.depth_write = False
 
     def _set_opacity(self, opacity):
+        """Handle  set opacity for ``Surface``.
+
+        Parameters
+        ----------
+        opacity : object
+            Input parameter.
+        """
         self._surface_actor.material.opacity = opacity / 100.0
         self._surface_actor.material.depth_write = opacity >= 100
 
     def _populate_info(self):
+        """Handle  populate info for ``Surface``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         info = f"No. of vertices: {len(self.vertices)}\nNo. of faces: {len(self.faces)}"
         return info
 
     @property
     def actor(self):
+        """Handle actor for ``Surface``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._surface_actor
 
     def render_widgets(self):
+        """Handle render widgets for ``Surface``.
+        None
+        """
         changed, new = thin_slider(
             "Opacity",
             self.opacity,

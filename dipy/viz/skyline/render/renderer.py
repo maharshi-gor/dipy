@@ -31,20 +31,26 @@ if has_imgui:
 
 
 class Visualization:
-    """Bridge between a data layer, a FURY actor, and Skyline sidebar widgets.
-
-    Subclasses implement :attr:`actor`, :meth:`render_widgets`, and optionally
-    :meth:`_populate_info`.
+    """Represent ``Visualization`` in Skyline.
 
     Parameters
     ----------
-    path : str or None
-        Source path or label used for sidebar naming.
-    render_callback : callable or None
-        Invoked to request a full window redraw after widget edits.
+    path : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
     """
 
     def __init__(self, path, render_callback):
+        """Represent ``Visualization`` in Skyline.
+
+        Parameters
+        ----------
+        path : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        """
         self._render_callback = render_callback
         self._scene_op_callback = None
         self.path = path if path is not None else "Unnamed Visualization"
@@ -71,10 +77,20 @@ class Visualization:
         func(*args, **kwargs)
 
     def _set_actor_visible(self, visible):
+        """Handle  set actor visible for ``Visualization``.
+
+        Parameters
+        ----------
+        visible : object
+            Input parameter.
+        """
         self.actor.visible = visible
 
     @property
     def actor(self):
+        """Handle actor for ``Visualization``.
+        None
+        """
         raise NotImplementedError("Subclasses must implement the actor property.")
 
     @property
@@ -172,6 +188,14 @@ class Visualization:
         )
 
     def _populate_info(self):
+        """Handle  populate info for ``Visualization``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self.name
 
 

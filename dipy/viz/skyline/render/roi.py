@@ -18,8 +18,7 @@ fury, has_fury_v2, _ = optional_package(
 )
 if has_fury_v2:
     from fury.actor import contour_from_roi, set_group_opacity
-else:
-    actor = fury.actor
+
 imgui_bundle, has_imgui, _ = optional_package("imgui_bundle", min_version="1.92.600")
 if has_imgui:
     imgui = imgui_bundle.imgui
@@ -76,7 +75,23 @@ def create_roi_visualization(
 
 
 class ROI3D(Visualization):
-    """3D ROI mask converted to an isosurface actor with basic styling widgets."""
+    """Represent ``ROI3D`` in Skyline.
+
+    Parameters
+    ----------
+    name : object
+        Input parameter.
+    roi : object
+        Input parameter.
+    affine : object
+        Input parameter.
+    opacity : object
+        Input parameter.
+    color : object
+        Input parameter.
+    render_callback : object
+        Input parameter.
+    """
 
     def __init__(
         self,
@@ -88,6 +103,23 @@ class ROI3D(Visualization):
         color=(1, 0, 0),
         render_callback=None,
     ):
+        """Represent ``ROI3D`` in Skyline.
+
+        Parameters
+        ----------
+        name : object
+            Input parameter.
+        roi : object
+            Input parameter.
+        affine : object
+            Input parameter.
+        opacity : object
+            Input parameter.
+        color : object
+            Input parameter.
+        render_callback : object
+            Input parameter.
+        """
         self.roi = roi
         if self.roi is None:
             raise ValueError("ROI data cannot be None for ROI visualization.")
@@ -106,6 +138,9 @@ class ROI3D(Visualization):
         super().__init__(name, render_callback)
 
     def _create_roi_actor(self):
+        """Handle  create roi actor for ``ROI3D``.
+        None
+        """
         self._roi_surface = contour_from_roi(
             self.roi, affine=self.affine, color=self.color, opacity=self.opacity / 100.0
         )
@@ -115,11 +150,26 @@ class ROI3D(Visualization):
                 actor.material.depth_write = False
 
     def _set_opacity(self, opacity):
+        """Handle  set opacity for ``ROI3D``.
+
+        Parameters
+        ----------
+        opacity : object
+            Input parameter.
+        """
         set_group_opacity(self._roi_surface, opacity / 100.0)
         for actor in self._roi_surface.children:
             actor.material.depth_write = opacity >= 100
 
     def _populate_info(self):
+        """Handle  populate info for ``ROI3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         info = f"ROI shape: {self.roi.shape}\nROI dtype: {self.roi.dtype}\n"
         info += f"Total voxels in ROI: {np.sum(self.roi > 0)}\n"
         if self.affine is not None:
@@ -131,9 +181,20 @@ class ROI3D(Visualization):
 
     @property
     def actor(self):
+        """Handle actor for ``ROI3D``.
+        None
+
+        Returns
+        -------
+        object
+            Returned value.
+        """
         return self._roi_surface
 
     def render_widgets(self):
+        """Handle render widgets for ``ROI3D``.
+        None
+        """
         changed, new = thin_slider(
             "Opacity",
             self.opacity,
