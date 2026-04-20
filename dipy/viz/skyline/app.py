@@ -246,6 +246,7 @@ class Skyline:
                 logo_tex_ref=logo_tex_ref,
                 file_dialog_callback=self._append_visualization,
                 bg_color_callback=self._update_background_color,
+                snapshot_callback=self._save_snapshot,
             )
             self.window._imgui.set_gui(self.draw_ui)
         else:
@@ -1009,6 +1010,21 @@ class Skyline:
         """
         if self.UI_window is not None:
             self.UI_window.update_loader(show=show, message=message)
+
+    def _save_snapshot(self, snapshot_path):
+        """Save a snapshot image using the ShowManager.
+
+        Parameters
+        ----------
+        snapshot_path : str
+            Target file path where the PNG snapshot will be saved.
+        """
+        _, extension = split_filename_extension(snapshot_path)
+        if extension == "":
+            snapshot_path = f"{snapshot_path}.png"
+
+        print(f"Saving snapshot to {snapshot_path}")
+        self.enqueue_scene_op(self.window.snapshot, snapshot_path)
 
     @property
     def visualizations(self):

@@ -83,6 +83,7 @@ class UIWindow:
         render_callback=None,
         file_dialog_callback=None,
         bg_color_callback=None,
+        snapshot_callback=None,
     ):
         """Represent ``UIWindow`` in Skyline.
 
@@ -106,6 +107,8 @@ class UIWindow:
             Callback invoked after file selection.
         bg_color_callback : callable, optional
             Callback invoked when background color changes.
+        snapshot_callback : callable, optional
+            Callback invoked when a snapshot path is selected.
         """
         self.title = title
         self.is_open = default_open
@@ -126,6 +129,7 @@ class UIWindow:
             self.render_callback = lambda: None
         self.file_dialog_callback = file_dialog_callback
         self.bg_color_callback = bg_color_callback
+        self.snapshot_callback = snapshot_callback
         self._bg_color = (0.1, 0.1, 0.1)
         self._is_dialog_open = False
 
@@ -316,6 +320,22 @@ class UIWindow:
         )
         if changed:
             self._update_bg_color(color)
+        imgui.same_line(0, 8)
+        snapshot_icon = icons_fontawesome_6.ICON_FA_CAMERA
+        imgui.text_colored(THEME["text"], snapshot_icon)
+        if imgui.is_item_hovered():
+            imgui.set_item_tooltip("Take Snapshot")
+        if imgui.is_item_clicked(imgui.MouseButton_.left):
+            render_file_dialog(
+                title="Save Snapshot",
+                name="PNG Files (*.png)",
+                extensions="*.png",
+                multiselect=False,
+                callback=self._snapshot_dialog_closed,
+                dialog_type="save",
+                file_name="snapshot.png",
+                type="viz",
+            )
 
         imgui.set_cursor_screen_pos(org_start)
         imgui.dummy((available_width, self.logo_size[1] + spacing * 5 + 1))
@@ -446,6 +466,28 @@ class UIWindow:
         self._bg_color = new_color
         if self.bg_color_callback is not None:
             self.bg_color_callback(new_color)
+
+    def _snapshot_dialog_closed(self, *, filenames=None, rois=None, shm_coeffs=None):
+        """Forward snapshot path to :attr:`snapshot_callback` when selected.
+
+        Parameters
+        ----------
+        filenames : list, str, or None, optional
+            Selected save target path(s) from the dialog.
+        rois : list or None, optional
+            Unused; kept for callback signature compatibility.
+        shm_coeffs : list or None, optional
+            Unused; kept for callback signature compatibility.
+        """
+        if self.snapshot_callback is None or filenames is None:
+            return
+        if isinstance(filenames, str):
+            snapshot_path = filenames
+        elif len(filenames) > 0:
+            snapshot_path = filenames[0]
+        else:
+            return
+        self.snapshot_callback(snapshot_path)
 
     def update_loader(self, *, show, message=None):
         """Toggle the modal loading overlay.
